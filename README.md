@@ -32,13 +32,9 @@
 
 ## 截图
 
-> 后台设置页（米白纸面、衬线大数字、吸顶毛玻璃顶栏、右栏数据图表）
+![后台设置页](docs/screenshot-settings.png)
 
-```
-docs/screenshot-settings.png
-```
-
-把截图放到 `docs/` 目录后，把上一行替换为：`![后台设置页](docs/screenshot-settings.png)`
+> 设置页：米白纸面、衬线大数字、吸顶毛玻璃顶栏；右栏为标签分布与相关推荐覆盖的实时统计。
 
 ## 环境要求
 
