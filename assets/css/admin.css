@@ -1,0 +1,275 @@
+/*
+ * 论坛 AI 摘要 · 后台样式（v2.1.0 · Editorial）
+ *
+ * 视觉：米白纸面、衬线大数字、细分隔线、吸顶毛玻璃栏、下划线页签。
+ * 作用域：全部挂在 .fas-admin 下，不污染 wp-admin 其它页面。
+ */
+
+.fas-admin{
+	--paper:#F7F5F0; --paper-2:#EFEBE3; --card:#FCFBF7;
+	--ink:#14130F; --ink-2:#5B564C; --ink-3:#928C80;
+	--line:#DED8CC; --line-2:#C9C2B3;
+	--accent:#1F3D2B; --accent-soft:#E4EADF;
+	--ok:#2F6B45; --bad:#8C2F1E;
+	--serif:"Songti SC","Noto Serif CJK SC",Georgia,"Times New Roman",serif;
+	--mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+	--ease:cubic-bezier(.2,.8,.2,1);
+
+	margin:0 0 40px -20px; padding:0 28px 56px;
+	background:var(--paper); color:var(--ink);
+	font-size:14px; line-height:1.65;
+	min-height:calc(100vh - 32px);
+}
+
+/* ── 吸顶栏（唯一使用模糊的地方） ─────────────────────────── */
+.fas-admin .fas-topbar{
+	position:sticky; top:32px; z-index:30;
+	margin:0 -28px 28px; padding:14px 28px;
+	display:flex; align-items:center; gap:16px;
+	background:rgba(247,245,240,.78);
+	-webkit-backdrop-filter:blur(16px) saturate(120%);
+	backdrop-filter:blur(16px) saturate(120%);
+	border-bottom:1px solid var(--line);
+}
+.fas-admin .fas-wordmark{
+	font-family:var(--serif); font-size:19px; letter-spacing:.01em; color:var(--ink);
+}
+.fas-admin .fas-wordmark em{
+	font-style:normal; font-family:var(--mono); font-size:11px; letter-spacing:.06em;
+	color:var(--ink-3); margin-left:10px;
+}
+.fas-admin .fas-spacer{flex:1}
+.fas-admin .fas-status{
+	display:inline-flex; align-items:center; gap:7px;
+	font-size:12px; color:var(--ink-3); letter-spacing:.02em;
+}
+.fas-admin .fas-status i{
+	width:6px; height:6px; border-radius:50%; background:var(--line-2);
+}
+.fas-admin .fas-status.is-live i{ background:var(--ok); }
+
+/* ── 按钮 ───────────────────────────────────────────────── */
+.fas-admin .fas-btn{
+	appearance:none; cursor:pointer;
+	border:1px solid var(--ink); background:transparent; color:var(--ink);
+	padding:7px 14px; border-radius:2px;
+	font:inherit; font-size:12.5px; letter-spacing:.02em;
+	transition:background .18s var(--ease), color .18s var(--ease), transform .12s var(--ease);
+}
+.fas-admin .fas-btn:hover{ background:var(--ink); color:var(--paper); }
+.fas-admin .fas-btn:active{ transform:translateY(1px); }
+.fas-admin .fas-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+.fas-admin .fas-btn-solid{ background:var(--ink); color:var(--paper); }
+.fas-admin .fas-btn-solid:hover{ background:var(--accent); border-color:var(--accent); }
+
+/* ── 报头 ───────────────────────────────────────────────── */
+.fas-admin .fas-masthead{
+	display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+	padding-bottom:16px; border-bottom:2px solid var(--ink);
+}
+.fas-admin .fas-masthead h1{
+	margin:0; padding:0; font-family:var(--serif); font-weight:400;
+	font-size:46px; line-height:1.05; letter-spacing:-.01em; color:var(--ink);
+}
+.fas-admin .fas-masthead p{
+	margin:8px 0 0; font-size:13px; color:var(--ink-2); letter-spacing:.01em;
+}
+
+/* ── 四个数字 ───────────────────────────────────────────── */
+.fas-admin .fas-figures{
+	display:grid; grid-template-columns:repeat(4,1fr);
+	border-bottom:1px solid var(--line);
+	text-align:center;            /* 数字与标签居中 */
+}
+.fas-admin .fas-fig{ padding:20px 20px 18px; border-right:1px solid var(--line); }
+.fas-admin .fas-fig:last-child{ border-right:0; }
+.fas-admin .fas-fig b{
+	display:block; font-family:var(--serif); font-weight:400;
+	font-size:38px; line-height:1; letter-spacing:-.02em;
+	font-variant-numeric:tabular-nums;
+}
+.fas-admin .fas-fig b span{ font-size:20px; color:var(--ink-3); margin-left:2px; }
+.fas-admin .fas-fig small{
+	display:block; margin-top:8px; font-size:11.5px; letter-spacing:.08em;
+	color:var(--ink-3); text-transform:uppercase;
+}
+
+/* ── 布局 ───────────────────────────────────────────────── */
+.fas-admin .fas-layout{
+	display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:40px; margin-top:28px;
+	align-items:start;
+}
+@media (max-width:1100px){
+	.fas-admin .fas-layout{ grid-template-columns:1fr; gap:28px; }
+	.fas-admin .fas-figures{ grid-template-columns:repeat(2,1fr); }
+	.fas-admin .fas-fig:nth-child(2){ border-right:0; }
+}
+
+/* ── 页签（下划线 + 滑动墨条） ──────────────────────────── */
+.fas-admin .fas-tabs{
+	position:relative; display:flex; gap:26px;
+	border-bottom:1px solid var(--line); margin-bottom:22px;
+}
+.fas-admin .fas-tab{
+	appearance:none; background:none; border:0; cursor:pointer;
+	padding:0 0 12px; margin:0;
+	font:inherit; font-size:13.5px; letter-spacing:.04em;
+	color:var(--ink-3); transition:color .18s var(--ease);
+}
+.fas-admin .fas-tab:hover{ color:var(--ink-2); }
+.fas-admin .fas-tab.is-active{ color:var(--ink); }
+.fas-admin .fas-tab:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+.fas-admin .fas-tab-ink{
+	position:absolute; left:0; bottom:-1px; height:2px; width:0;
+	background:var(--ink); transition:transform .28s var(--ease), width .28s var(--ease);
+}
+
+/* ── 表单行 ─────────────────────────────────────────────── */
+.fas-admin .fas-h{
+	margin:26px 0 0; padding:0 0 8px;
+	font-family:var(--serif); font-weight:400; font-size:15px; letter-spacing:.02em;
+	color:var(--ink-2); border-bottom:1px solid var(--line);
+}
+.fas-admin .fas-h:first-child{ margin-top:0; }
+.fas-admin .fas-row{
+	display:grid; grid-template-columns:220px minmax(0,1fr); gap:20px;
+	align-items:center; padding:13px 0; border-bottom:1px solid var(--line);
+}
+@media (max-width:782px){
+	.fas-admin .fas-row{ grid-template-columns:1fr; gap:8px; }
+}
+.fas-admin .fas-label{ font-size:13.5px; color:var(--ink); letter-spacing:.01em; }
+.fas-admin .fas-hint{
+	display:block; margin-top:3px; font-size:11.5px; color:var(--ink-3); letter-spacing:.02em;
+}
+.fas-admin .fas-ctrl{ display:flex; align-items:center; gap:12px; }
+
+/* 输入：下划线式 */
+.fas-admin .fas-input{
+	width:100%; max-width:420px; padding:7px 2px;
+	background:transparent; border:0; border-bottom:1px solid var(--line-2);
+	color:var(--ink); font:inherit; font-size:13.5px; letter-spacing:.01em;
+	border-radius:0; transition:border-color .18s var(--ease);
+}
+.fas-admin .fas-input:hover{ border-bottom-color:var(--ink-3); }
+.fas-admin .fas-input:focus{
+	outline:none; border-bottom-color:var(--ink);
+	box-shadow:0 1px 0 0 var(--ink);
+}
+.fas-admin .fas-input-num{ max-width:140px; font-family:var(--mono); }
+.fas-admin .fas-select{
+	appearance:none; cursor:pointer; padding-right:22px;
+	background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+	background-position:calc(100% - 10px) 14px, calc(100% - 5px) 14px;
+	background-size:5px 5px,5px 5px; background-repeat:no-repeat;
+}
+
+/* 开关 */
+.fas-admin .fas-switch{ display:inline-flex; align-items:center; gap:10px; cursor:pointer; }
+.fas-admin .fas-switch input{ position:absolute; opacity:0; width:0; height:0; }
+.fas-admin .fas-switch-track{
+	position:relative; width:38px; height:20px; border-radius:20px;
+	background:var(--paper-2); border:1px solid var(--line-2);
+	transition:background .22s var(--ease), border-color .22s var(--ease);
+}
+.fas-admin .fas-switch-dot{
+	position:absolute; top:2px; left:2px; width:14px; height:14px; border-radius:50%;
+	background:#fff; border:1px solid var(--line-2);
+	transition:transform .22s var(--ease), border-color .22s var(--ease);
+}
+.fas-admin .fas-switch input:checked + .fas-switch-track{ background:var(--accent); border-color:var(--accent); }
+.fas-admin .fas-switch input:checked + .fas-switch-track .fas-switch-dot{ transform:translateX(18px); border-color:var(--accent); }
+.fas-admin .fas-switch input:focus-visible + .fas-switch-track{ outline:2px solid var(--accent); outline-offset:2px; }
+.fas-admin .fas-switch-text{
+	font-family:var(--mono); font-size:10.5px; letter-spacing:.1em; color:var(--ink-3);
+}
+.fas-admin .fas-switch input:checked ~ .fas-switch-text{ color:var(--accent); }
+
+/* ── 卡片 / 提示 / 表格 ─────────────────────────────────── */
+.fas-admin .fas-card{
+	background:var(--card); border:1px solid var(--line); border-radius:3px;
+	padding:16px 16px 14px;
+}
+.fas-admin .fas-card h3{
+	margin:0 0 12px; font-family:var(--serif); font-weight:400; font-size:14px;
+	letter-spacing:.04em; color:var(--ink-2);
+}
+.fas-admin .fas-card-inline{ margin-top:12px; }
+.fas-admin .fas-card p{ margin:0 0 10px; font-size:13px; color:var(--ink-2); }
+.fas-admin .fas-card p b{ color:var(--ink); }
+.fas-admin .fas-notice{
+	margin:18px 0; padding:10px 14px; font-size:12.5px; color:var(--ink-2);
+	background:var(--accent-soft); border-left:2px solid var(--accent);
+}
+.fas-admin .fas-note{ margin:10px 0 0; font-size:11.5px; color:var(--ink-3); letter-spacing:.02em; }
+.fas-admin .fas-table{ width:100%; border-collapse:collapse; font-size:12.5px; margin-top:8px; }
+.fas-admin .fas-table th,.fas-admin .fas-table td{
+	text-align:left; padding:8px 10px; border-bottom:1px solid var(--line);
+}
+.fas-admin .fas-table th{ font-weight:600; color:var(--ink-2); font-size:11.5px; letter-spacing:.06em; }
+.fas-admin .fas-ok{ color:var(--ok); }
+.fas-admin .fas-bad{ color:var(--bad); }
+
+/* ── 右栏图表 ───────────────────────────────────────────── */
+.fas-admin .fas-rail{ display:flex; flex-direction:column; gap:18px; position:sticky; top:104px; }
+@media (max-width:1100px){ .fas-admin .fas-rail{ position:static; } }
+
+.fas-admin .fas-rank{ list-style:none; margin:0; padding:0; }
+.fas-admin .fas-rank li{
+	display:grid; grid-template-columns:1fr auto; gap:4px 10px;
+	padding:7px 0; border-bottom:1px solid var(--line);
+}
+.fas-admin .fas-rank li:last-child{ border-bottom:0; }
+.fas-admin .fas-rank .n{ font-size:12.5px; color:var(--ink); }
+.fas-admin .fas-rank .c{
+	font-family:var(--mono); font-size:11.5px; color:var(--ink-2);
+	font-variant-numeric:tabular-nums;
+}
+.fas-admin .fas-rank .meter{
+	grid-column:1 / -1; height:2px; background:var(--line);
+	overflow:hidden;
+}
+.fas-admin .fas-rank .meter i{
+	display:block; height:100%; background:var(--ink);
+	transform-origin:left; animation:fas-meter .7s var(--ease) both;
+}
+@keyframes fas-meter{ from{ transform:scaleX(0); } to{ transform:scaleX(1); } }
+
+.fas-admin .fas-chart{ width:100%; height:86px; display:block; }
+.fas-admin .fas-legend{ margin:10px 0 0; font-size:11px; color:var(--ink-3); letter-spacing:.03em; }
+
+/* ── 进度 ───────────────────────────────────────────────── */
+.fas-admin .fas-progress{
+	height:2px; margin:12px 0 0; background:var(--line); overflow:hidden;
+}
+.fas-admin .fas-progress i{
+	display:block; height:100%; width:0; background:var(--ink);
+	transition:width .25s linear;
+}
+.fas-admin .fas-actions{ display:flex; gap:10px; margin-top:4px; }
+
+/* ── 页脚 ───────────────────────────────────────────────── */
+.fas-admin .fas-foot{
+	display:flex; align-items:center; gap:14px;
+	margin-top:28px; padding-top:18px; border-top:2px solid var(--ink);
+}
+
+
+/* 相关推荐覆盖：双色分割条（已进推荐 / 从未进入） */
+.fas-admin .fas-split{
+	display:flex; height:10px; margin:14px 0 10px;
+	background:var(--line); overflow:hidden;
+}
+.fas-admin .fas-split i{ display:block; height:100%; background:var(--ink); }
+.fas-admin .fas-split i.is-rest{ background:var(--line-2); }
+.fas-admin .fas-legend b{ font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+/* ── 降级：用户要求减少动效时，全部瞬时 ─────────────────── */
+@media (prefers-reduced-motion: reduce){
+	.fas-admin *{ animation:none !important; transition:none !important; }
+}
+
+/* 旧浏览器不支持 backdrop-filter：退回实色，不影响可读性 */
+@supports not (backdrop-filter: blur(1px)){
+	.fas-admin .fas-topbar{ background:var(--paper); }
+}

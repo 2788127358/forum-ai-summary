@@ -1,0 +1,317 @@
+/* 论坛 AI 摘要 - 前端摘要模块样式（深色） */
+
+.fas-ai-summary-box {
+	position: relative;
+	margin: 48px 0 28px;
+	padding: 52px 22px 22px;
+	background: linear-gradient(160deg, #1b2a4a 0%, #121a2e 55%, #0b1220 100%);
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	border-radius: 18px;
+	color: #dbe4f0;
+	box-shadow: 0 12px 36px rgba(2, 6, 23, 0.45);
+	overflow: visible;
+}
+
+/* 顶部中间圆形头像：一半在模块内、一半在模块外 */
+.fas-ai-avatar {
+	position: absolute;
+	top: -32px;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 64px;
+	height: 64px;
+	border-radius: 50%;
+	overflow: hidden;
+	background: #111827;
+	border: 3px solid #1b2a4a;
+	box-shadow: 0 6px 18px rgba(2, 6, 23, 0.55);
+	line-height: 0;
+}
+.fas-ai-avatar img,
+.fas-ai-avatar svg {
+	width: 100%;
+	height: 100%;
+	display: block;
+	border-radius: 50%;
+}
+
+/* 标题区：最左侧 */
+.fas-ai-summary-head {
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	margin-bottom: 12px;
+}
+.fas-ai-summary-head .fas-ai-declare {
+	font-size: 12px;
+	font-weight: 400;
+	letter-spacing: 0.5px;
+	color: #8b9bb4;
+}
+
+/* 摘要正文 */
+.fas-ai-summary-body {
+	word-break: break-word;
+	font-size: 14px;
+	line-height: 1.85;
+	color: #cbd5e1;
+}
+
+/* 相关标签：融入摘要模块，顶部细分隔线 */
+.fas-ai-tags {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+.fas-ai-tag {
+	display: inline-block;
+	padding: 4px 13px;
+	font-size: 13px;
+	line-height: 1.5;
+	color: #93c5fd;
+	background: rgba(79, 140, 255, 0.12);
+	border: 1px solid rgba(79, 140, 255, 0.28);
+	border-radius: 999px;
+	text-decoration: none;
+	transition: all 0.15s ease;
+}
+a.fas-ai-tag:hover {
+	background: #4f8cff;
+	border-color: #4f8cff;
+	color: #ffffff;
+}
+
+/* ==========================================================================
+   相关推荐（独立暗黑卡片，正文下方 / 评论上方）
+   ========================================================================== */
+.fas-related {
+	position: relative;
+	margin: 0 0 24px;
+	padding: 18px 16px 16px;
+	background: linear-gradient(160deg, #1b2a4a 0%, #121a2e 55%, #0b1220 100%);
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	border-radius: 16px;
+	box-shadow: 0 10px 30px rgba(2, 6, 23, 0.35);
+	color: #dbe4f0;
+}
+.fas-related-head {
+	display: flex;
+	align-items: center;
+	margin-bottom: 14px;
+}
+.fas-related-title {
+	margin: 0;
+	font-size: 16px;
+	font-weight: 700;
+	line-height: 1.3;
+	color: #e6edf7;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.fas-related-title::before {
+	content: '';
+	flex: none;
+	width: 4px;
+	height: 16px;
+	border-radius: 2px;
+	background: linear-gradient(180deg, #4f8cff, #2563eb);
+}
+/* 左右切换箭头：纯加粗箭头（无圆底、无背景），靠柔光阴影(模糊)在暗底上凸显，悬浮在模块内部两侧 */
+.fas-related-arrow {
+	position: absolute;
+	top: 50%;
+	transform: translateY(-50%);
+	z-index: 3;
+	width: 46px;
+	height: 46px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: #ffffff;
+	cursor: pointer;
+	opacity: 0.92;
+	filter: drop-shadow(0 0 7px rgba(0, 0, 0, 0.75)) drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5));
+	transition: color 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
+}
+.fas-related-arrow svg {
+	width: 34px;
+	height: 34px;
+}
+.fas-related-prev {
+	left: 2px;
+}
+.fas-related-next {
+	right: 2px;
+}
+.fas-related-arrow:hover {
+	color: #4f8cff;
+	opacity: 1;
+	filter: drop-shadow(0 0 10px rgba(79, 140, 255, 0.75)) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
+}
+.fas-related-arrow:active {
+	transform: translateY(-50%) scale(0.9);
+}
+.fas-related-arrow.is-disabled {
+	opacity: 0;
+	pointer-events: none;
+}
+.fas-related-scroll {
+	position: relative;
+	display: flex;
+	gap: 12px;
+	overflow-x: auto;
+	scroll-snap-type: x proximity;
+	-webkit-overflow-scrolling: touch;
+	padding-bottom: 4px;
+	scrollbar-width: none; /* Firefox：隐藏滚动条 */
+	cursor: grab;
+}
+.fas-related-scroll::-webkit-scrollbar {
+	display: none; /* WebKit：隐藏滚动条，靠滚轮/拖拽/触摸滑动 */
+}
+.fas-related-scroll.is-dragging {
+	cursor: grabbing;
+	scroll-snap-type: none;
+	user-select: none;
+	-webkit-user-select: none;
+}
+/* 右端渐变提示：暗示右侧还有更多卡片，滑到底后自动隐藏 */
+.fas-related-scroll::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 4px;
+	width: 34px;
+	pointer-events: none;
+	background: linear-gradient(90deg, rgba(11, 18, 32, 0), rgba(11, 18, 32, 0.82));
+	transition: opacity 0.2s ease;
+}
+.fas-related-scroll.is-end::after {
+	opacity: 0;
+}
+.fas-related-card {
+	flex: 0 0 auto;
+	width: 168px;
+	scroll-snap-align: start;
+	display: flex;
+	flex-direction: column;
+	background: rgba(255, 255, 255, 0.05);
+	border: 1px solid rgba(148, 163, 184, 0.14);
+	border-radius: 12px;
+	overflow: hidden;
+	text-decoration: none;
+	transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+.fas-related-card:hover {
+	transform: translateY(-3px);
+	border-color: rgba(79, 140, 255, 0.5);
+	background: rgba(255, 255, 255, 0.08);
+}
+.fas-related-thumb {
+	display: block;
+	width: 100%;
+	aspect-ratio: 16 / 10;
+	min-height: 96px;
+	background: #0d1526;
+	overflow: hidden;
+}
+.fas-related-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+/* 懒加载封面：加载前透明（露出占位背景色），加载完成后淡入 */
+.fas-related-thumb img.fas-lazy {
+	opacity: 0;
+	transition: opacity 0.25s ease;
+}
+.fas-related-thumb img.is-loaded {
+	opacity: 1;
+}
+.fas-related-thumb-empty {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: linear-gradient(135deg, #1c2b4a, #141f38);
+}
+.fas-related-initial {
+	font-size: 32px;
+	font-weight: 700;
+	color: #4f8cff;
+}
+/* 标题区：外层负责留白，内层纯文本做「严格两行」硬裁剪 */
+.fas-related-name {
+	display: block;
+	padding: 10px 12px 12px;
+	box-sizing: border-box;
+}
+.fas-related-name-inner {
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 2;
+	overflow: hidden;
+	font-size: 13px;
+	line-height: 20px !important; /* 固定行高，!important 杜绝主题覆写 */
+	max-height: 40px !important;  /* 2 行 × 20px，硬性封顶，第三行被物理裁掉 */
+	color: #cbd5e1;
+	word-break: break-word;
+}
+
+/* 移动端：卡片略窄、内边距收紧，一屏可见更多 */
+@media (max-width: 480px) {
+	.fas-related {
+		padding: 16px 12px 14px;
+		border-radius: 14px;
+	}
+	.fas-related-card {
+		width: 150px;
+	}
+	.fas-related-arrow {
+		width: 40px;
+		height: 40px;
+	}
+	.fas-related-arrow svg {
+		width: 28px;
+		height: 28px;
+	}
+	.fas-related-prev {
+		left: 0;
+	}
+	.fas-related-next {
+		right: 0;
+	}
+}
+
+/* ---------- 正文自动内链：锚文本样式 ----------
+   只做一个「看得出是链接、但不打断阅读」的低调样式：继承正文字色与字重，
+   用虚线下划线标记。刻意不换色、不加粗，避免正文里跳出一块异色而影响可读性。 */
+.wp-posts-content a.fas-inlink,
+.plate-tab a.fas-inlink,
+.fas-inlink {
+	color: inherit;
+	text-decoration: underline;
+	text-decoration-style: dotted;
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+	transition: color .18s ease, text-decoration-color .18s ease;
+}
+.wp-posts-content a.fas-inlink:hover,
+.plate-tab a.fas-inlink:hover,
+.fas-inlink:hover {
+	color: #3e86f6;
+	text-decoration-style: solid;
+	text-decoration-color: #3e86f6;
+}

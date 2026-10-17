@@ -1,0 +1,18 @@
+# 依赖 / 构建
+node_modules/
+vendor/
+dist/
+
+# 发行物
+*.zip
+
+# 本地环境
+.env
+wp-config.php
+.DS_Store
+Thumbs.db
+
+# 开发与测试产物
+_probe/
+_design/
+*.log
