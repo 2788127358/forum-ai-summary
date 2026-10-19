@@ -3,7 +3,7 @@
  * Plugin Name:       论坛 AI 摘要（Forum AI Summary）
  * Plugin URI:        https://yd.zlinlang.com/
  * Description:       为子比论坛帖子自动生成 AI 摘要与标签，并把 SEO 一次做完：写入子比「独立SEO」三要素、给标签与板块补搜索描述、正文语义内链、文末相关推荐。发帖自动生成、失败自动重试，标题改动后自动重整理 SEO。支持 OpenAI、DeepSeek、Anthropic 与任意兼容接口。
- * Version:           2.2.0
+ * Version:           2.2.1
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            开源极界
@@ -18,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'FAS_VERSION', '2.2.0' );
+define( 'FAS_VERSION', '2.2.1' );
 define( 'FAS_PLUGIN_FILE', __FILE__ );
 define( 'FAS_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'FAS_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

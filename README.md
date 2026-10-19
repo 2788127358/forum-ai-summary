@@ -3,7 +3,7 @@
 [![License: GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue.svg)](LICENSE)
 [![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-21759b.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.4%2B-777bb4.svg)](https://www.php.net/)
-[![Version](https://img.shields.io/badge/version-2.2.0-success.svg)](readme.txt)
+[![Version](https://img.shields.io/badge/version-2.2.1-success.svg)](readme.txt)
 
 > 为子比（Zibll）论坛帖子自动生成 AI 摘要与相关标签，并把 SEO 一次做完。
 
@@ -17,7 +17,7 @@
 | --- | --- | --- |
 | AI 摘要 + 标签 | 生成摘要与 3 个（可配 1–10）相关标签；标签只复用站内已有 `forum_tag`，不新建 | 发布后 5 秒 / 编辑页手动 |
 | AI SEO 三要素 | 生成 SEO 标题、关键词、描述，写入子比「独立SEO」字段，不改帖子原标题 | 首次生成时一并执行 |
-| 标题变更重整理 | 帖子标题改动后自动重跑 AI SEO（版本号更新等场景） | 保存后 10 秒 |
+| 标题变更重整理 | 帖子标题改动后自动重跑 AI SEO（版本号更新等场景）；保存钩子没触发或事件丢失时，由每小时巡检兜底 | 保存后 10 秒，巡检 ≤1 小时 |
 | 搜索摘要补全 | 给标签归档页、板块页补 `meta description`（60–120 字） | 发帖 / 新建标签后 8 秒 |
 | 相关推荐 | 正文下方横向卡片：同标签 → 关键词 → 同板块 → 兜底，支持曝光均衡 | 前台渲染 + 缓存 |
 | 正文自动内链 | AI 从站内选最相关的一篇，在正文里给一个**本来就有**的词加链接 | 摘要生成后 10 秒（默认关闭） |
@@ -29,12 +29,6 @@
 - 支持 **OpenAI / DeepSeek / Anthropic**，以及任意兼容 OpenAI 协议的接口。
 - 只作用于论坛帖子（`forum_post`），不影响普通文章与页面。
 - 无前端框架、无 CDN、无构建步骤，可离线运行。
-
-## 截图
-
-![后台设置页](docs/screenshot-settings.png)
-
-> 设置页：米白纸面、衬线大数字、吸顶毛玻璃顶栏；右栏为标签分布与相关推荐覆盖的实时统计。
 
 ## 环境要求
 
@@ -95,6 +89,7 @@ git clone https://github.com/2788127358/forum-ai-summary.git
 
 帖子标题被修改
       │  post_updated（比较改前/改后标题）
+      │  + 每小时巡检：最近 7 天改过的帖子比对标题基线（兜底）
       ▼
   +10s  fas_seo_retitle_event ──► 重跑 AI SEO
 
@@ -180,6 +175,22 @@ OpenAI、DeepSeek、Anthropic，以及任何兼容 OpenAI 协议的接口（自�
 1. 说明改动目的与影响范围（是否影响已有数据）。
 2. 确认 `php -l` 通过，后台脚本 `node --check` 通过。
 3. 涉及行为的改动请附带可复现的验证步骤。
+
+## 更新日志
+
+### 2.2.1
+
+修复「改标题后 AI SEO 不重整理」——改版本号这类场景下 SEO 标题还停在旧版本。根因有三：存量帖没有 `_fas_seo_source_title` 基线、重整理只挂在 `post_updated`（主题绕过后整条链不启动）、低流量时段延迟事件可能丢失。
+
+现在三层兜底：
+
+- **放宽旧数据判断**：有 `_fas_seo_title` 就认作插件生成过，不再因缺基线跳过。
+- **惰性兜底**：帖子保存后 1 小时内被访问时，再比对一次标题基线，不一致补排事件（同帖 10 分钟去抖）。
+- **每小时巡检**：按修改时间倒序检查最近 7 天动过的帖子（单轮最多 30 篇），只对不一致的排事件；扫描只读数据库、不调模型，一次预取帖子与 meta，整轮固定 3 条查询。
+
+结果：改标题并保存后 10 秒生效；钩子没触发或事件丢失的，最迟下一轮巡检自动收敛。无数据迁移。
+
+完整历史见 [readme.txt](readme.txt) 的 Changelog。
 
 ## 许可
 

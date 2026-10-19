@@ -55,6 +55,21 @@ class FAS_Hooks {
 	/** 标题改动后的延迟秒数（等编辑器保存后的其它写入完成）。 */
 	const DELAY_RETITLE = 10;
 
+	/** v2.2.1：惰性兜底只覆盖「刚被保存过」的帖子，避免历史帖被批量重排。 */
+	const LAZY_RETITLE_WINDOW = 3600;
+
+	/** v2.2.1：惰性兜底的去抖 transient 前缀（同帖 10 分钟内只排一次）。 */
+	const LAZY_RETITLE_LOCK = 'fas_retitle_lazy_';
+
+	/** v2.2.1：每小时巡检「最近改过的帖子」的事件名。 */
+	const EVENT_RETITLE_SCAN = 'fas_seo_retitle_scan';
+
+	/** v2.2.1：巡检回看窗口（秒）。7 天足够覆盖升级前的存量改动，且不会全表扫。 */
+	const SCAN_LOOKBACK = 604800;
+
+	/** v2.2.1：单轮巡检最多检查的帖子数（按修改时间倒序）。 */
+	const SCAN_LIMIT = 30;
+
 	/**
 	 * 单例。
 	 */
@@ -80,6 +95,16 @@ class FAS_Hooks {
 		// 所以这里单独接 post_updated（能拿到改前/改后两份 post，判断标题是否真的变了）。
 		add_action( 'post_updated', array( $this, 'on_post_updated' ), 10, 3 );
 		add_action( self::EVENT_RETITLE, array( $this, 'handle_retitle_event' ), 10, 1 );
+
+		// v2.2.1：惰性兜底。部分编辑器/主题会绕过 wp_update_post 直接写 wp_posts，
+		// 或延迟事件在低流量时段丢失，post_updated 可能根本没触发。访客打开「刚被保存过」
+		// 的帖子时，再校验一次 SEO 基线与当前标题是否一致，不一致就补排重整理事件。
+		add_action( 'wp', array( $this, 'maybe_lazy_retitle' ) );
+
+		// v2.2.1：最后一层保险——每小时巡检「最近 7 天改过的帖子」。不依赖保存路径，
+		// 也不依赖帖子被访问；扫描只读 DB，真正生成仍由 fas_seo_retitle_event 完成。
+		add_action( self::EVENT_RETITLE_SCAN, array( $this, 'handle_retitle_scan' ) );
+		add_action( 'init', array( $this, 'maybe_schedule_retitle_scan' ) );
 
 		// 前端摘要展示：短代码 + 可选自动注入 + 样式。
 		add_shortcode( 'zib_ai_summary', array( $this, 'render_summary_shortcode' ) );
@@ -342,7 +367,11 @@ class FAS_Hooks {
 			return;
 		}
 
-		if ( '' === (string) get_post_meta( $post_id, '_fas_seo_generated_at', true ) ) {
+		// 只处理本插件生成过 SEO 的帖子。v2.2.1：早期版本只写了 _fas_seo_title、
+		// 没写 _fas_seo_generated_at，若只用后者判断会把存量帖全部漏掉，故两者取其一。
+		$has_seo = '' !== (string) get_post_meta( $post_id, '_fas_seo_generated_at', true )
+			|| '' !== (string) get_post_meta( $post_id, '_fas_seo_title', true );
+		if ( ! $has_seo ) {
 			return;
 		}
 		if ( ! FAS_Options::is_configured() ) {
@@ -384,6 +413,150 @@ class FAS_Hooks {
 			update_post_meta( $post_id, '_fas_seo_status', 'ok' === $r['code'] ? 'success' : (string) $r['code'] );
 			if ( 'ok' !== $r['code'] && isset( $r['message'] ) ) {
 				update_post_meta( $post_id, '_fas_seo_error', (string) $r['message'] );
+			}
+		}
+	}
+
+	/**
+	 * 惰性兜底（v2.2.1）：帖子被保存后 1 小时内有人打开它，就校验一次标题基线。
+	 *
+	 * 为什么需要：`post_updated` 只在写入走 `wp_update_post()` 时触发。部分编辑器 /
+	 * 主题保存时会直接 `$wpdb->update( $wpdb->posts, ... )`，或服务器低峰期延迟事件
+	 * 丢失，此时「改标题 → 重整理」整条链路都不会启动，SEO 会一直停在旧标题上。
+	 *
+	 * 本方法只看「刚被保存过」的帖子（默认 1 小时窗口），因此不会把全站历史帖
+	 * 一次性拉去重排、也不会在每次访问时打 API：
+	 *   · 标题与 `_fas_seo_source_title` 一致 → 什么都不做；
+	 *   · 不一致（含旧版本没有基线的情况）→ 排一次既有的重整理事件。
+	 *
+	 * @return void
+	 */
+	public function maybe_lazy_retitle() {
+		if ( wp_doing_cron() || ! is_singular( FAS_Forum::post_type() ) ) {
+			return;
+		}
+
+		$post = get_queried_object();
+		if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status ) {
+			return;
+		}
+
+		$post_id = (int) $post->ID;
+
+		// 只兜底「刚被保存过」的帖子：正常链路此时已经排过事件，这里负责补漏。
+		$modified = (int) get_post_modified_time( 'U', true, $post_id );
+		if ( $modified <= 0 || $modified < time() - self::LAZY_RETITLE_WINDOW ) {
+			return;
+		}
+
+		// 本插件没生成过 SEO 的帖子不碰（交给首次发布链路或主题自己的设置）。
+		if ( '' === (string) get_post_meta( $post_id, '_fas_seo_title', true )
+			&& '' === (string) get_post_meta( $post_id, '_fas_seo_generated_at', true ) ) {
+			return;
+		}
+		if ( ! FAS_Options::is_configured() ) {
+			return;
+		}
+
+		$current = trim( (string) $post->post_title );
+		$source  = trim( (string) get_post_meta( $post_id, '_fas_seo_source_title', true ) );
+		if ( '' !== $source && $source === $current ) {
+			return;
+		}
+
+		// 去抖：同一篇帖子 10 分钟内只排一次，避免并发访客重复入队。
+		$lock = self::LAZY_RETITLE_LOCK . $post_id;
+		if ( get_transient( $lock ) ) {
+			return;
+		}
+		set_transient( $lock, 1, 10 * MINUTE_IN_SECONDS );
+
+		if ( ! wp_next_scheduled( self::EVENT_RETITLE, array( $post_id ) ) ) {
+			wp_schedule_single_event( time() + self::DELAY_RETITLE, self::EVENT_RETITLE, array( $post_id ) );
+		}
+	}
+
+	/**
+	 * 确保「标题基线巡检」已注册为每小时任务（v2.2.1）。
+	 *
+	 * @return void
+	 */
+	public function maybe_schedule_retitle_scan() {
+		if ( wp_next_scheduled( self::EVENT_RETITLE_SCAN ) ) {
+			return;
+		}
+		if ( ! FAS_Options::is_configured() ) {
+			return;
+		}
+		wp_schedule_event( time() + 5 * MINUTE_IN_SECONDS, 'hourly', self::EVENT_RETITLE_SCAN );
+	}
+
+	/**
+	 * 每小时巡检：把「最近改过、但 SEO 基线还是旧标题」的帖子排进重整理队列（v2.2.1）。
+	 *
+	 * 这是不依赖保存路径的最后一道保险：子比前台/后台的某些保存动作会直接写
+	 * `wp_posts`，`post_updated` 根本不触发；而惰性兜底又要求帖子被访问。
+	 * 巡检按修改时间倒序取最近 7 天动过的帖子（单轮最多 30 篇），逐篇比对
+	 * `_fas_seo_source_title` 与当前标题，只对不一致的排事件——扫描本身不调 API。
+	 *
+	 * @return void
+	 */
+	public function handle_retitle_scan() {
+		if ( ! FAS_Options::is_configured() || ! class_exists( 'FAS_Title' ) ) {
+			return;
+		}
+
+		$ids = get_posts(
+			array(
+				'post_type'      => FAS_Forum::post_type(),
+				'post_status'    => 'publish',
+				'posts_per_page' => self::SCAN_LIMIT,
+				'orderby'        => 'modified',
+				'order'          => 'DESC',
+				'fields'         => 'ids',
+				'no_found_rows'  => true,
+				'date_query'     => array(
+					array(
+						'column' => 'post_modified_gmt',
+						'after'  => gmdate( 'Y-m-d H:i:s', time() - self::SCAN_LOOKBACK ),
+					),
+				),
+			)
+		);
+
+		$ids = array_map( 'intval', (array) $ids );
+		if ( empty( $ids ) ) {
+			return;
+		}
+
+		// 一次预取帖子对象与 meta：否则循环里 30 篇 × 3 次 get_post_meta 会放大成
+		// 90+ 条小查询。预取后整轮巡检固定 2~3 条查询，单次内存占用在百 KB 量级。
+		if ( function_exists( '_prime_post_caches' ) ) {
+			_prime_post_caches( $ids, false, true );
+		} else {
+			update_meta_cache( 'post', $ids );
+		}
+
+		foreach ( $ids as $id ) {
+			$post = get_post( $id );
+			if ( ! $post instanceof WP_Post || 'publish' !== $post->post_status ) {
+				continue;
+			}
+
+			// 本插件没生成过 SEO 的帖子不碰。
+			if ( '' === (string) get_post_meta( $id, '_fas_seo_title', true )
+				&& '' === (string) get_post_meta( $id, '_fas_seo_generated_at', true ) ) {
+				continue;
+			}
+
+			$current = trim( (string) $post->post_title );
+			$source  = trim( (string) get_post_meta( $id, '_fas_seo_source_title', true ) );
+			if ( '' !== $source && $source === $current ) {
+				continue;
+			}
+
+			if ( ! wp_next_scheduled( self::EVENT_RETITLE, array( $id ) ) ) {
+				wp_schedule_single_event( time() + self::DELAY_RETITLE, self::EVENT_RETITLE, array( $id ) );
 			}
 		}
 	}

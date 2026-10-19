@@ -4,7 +4,7 @@ Tags: zibll, forum, ai, summary, tags, seo, openai, deepseek, anthropic, interna
 Requires at least: 5.8
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 2.2.0
+Stable tag: 2.2.1
 License: GPLv3 or later
 License URI: https://www.gnu.org/licenses/gpl-3.0.html
 
@@ -45,6 +45,12 @@ post meta `_fas_summary`；可选同时写入 `post_excerpt`。
 
 == Changelog ==
 
+= 2.2.1 =
+* 修复：改标题后 AI SEO 不重整理。根因有三——① 存量帖的 SEO 由旧版本生成，没有 `_fas_seo_source_title` 基线；② 重整理只挂在 `post_updated`，主题 / 编辑器绕过 `wp_update_post` 直接写库时整条链路不启动；③ 低流量时段延迟事件可能丢失。
+* 补了三层：保存时放宽旧数据判断（有 `_fas_seo_title` 即视为插件生成过）；「惰性兜底」——帖子保存后 1 小时内被访问时再比对一次标题基线，不一致即补排事件（同帖 10 分钟去抖）；「每小时巡检」——按修改时间倒序检查最近 7 天动过的帖子（单轮最多 30 篇），只对不一致的排事件，扫描本身不调模型。
+* 巡检改为一次预取帖子与 meta，整轮固定 3 条查询，单次内存占用百 KB 量级。
+* 结果：改标题并保存后 10 秒生效；绕过保存钩子或事件丢失的，最迟下一轮巡检自动收敛；升级前已漂移的存量帖也会在 7 天窗口内被巡检逐个修好。
+
 = 2.2.0 =
 * 后台数据条居中。
 * 右栏新增「相关推荐覆盖」：已进推荐 / 从未进入篇数、覆盖率、平均曝光。
@@ -69,6 +75,9 @@ post meta `_fas_summary`；可选同时写入 `post_excerpt`。
 * 多模型接入、发布自动生成、失败重试、相关推荐与内链均衡、AI SEO 三要素。
 
 == Upgrade Notice ==
+
+= 2.2.1 =
+修复改标题后 AI SEO 不重整理；新增每小时标题基线巡检。无数据迁移，直接覆盖升级即可。
 
 = 2.2.0 =
 仅界面与元信息调整，无数据迁移。
